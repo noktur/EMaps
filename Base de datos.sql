@@ -73,8 +73,8 @@ create table Mapa
 create table Punto 
 (
     IdPunto int AUTO_INCREMENT not null primary key,
-	cordX int,
-	cordY int,
+	cordX real,
+	cordY real,
     Eliminado boolean
 );
 
@@ -687,10 +687,9 @@ DELIMITER;
 
 
 DELIMITER //
-CREATE PROCEDURE AlquilarLugar (pNombreLugar varchar(30),pFechaInicio timestamp,FechaFin timestamp,pCiOrganizador varchar(30),pFechaReservacion timestamp)
+CREATE PROCEDURE AlquilarLugar (pNombreLugar varchar(30),pFechaInicio timestamp,pFechaFin timestamp,pCiOrganizador varchar(30),pFechaReservacion timestamp)
 BEGIN
 INSERT INTO ALQUILER(IdAlquiler,NombreLugar,CiOrganizador,FechaInicioAlquiler,FechaFinAlquiler,FechaRealizado) values (0,pNombreLugar,pCiOrganizador,pFechaInicio,pFechaFin,pFechaReservacion);
-UPDATE LUGAR SET EstadoAlquiler=pEstadoAlquiler where Lugar.NombreLugar=pNombreLugar;
 END//
 DELIMITER;
 
@@ -760,13 +759,6 @@ DELIMITER;
 
 -- PROCEDIMIENTOS ALMACENADOS PUNTO
 
-
-DELIMITER //
-CREATE PROCEDURE AltaPunto (pCordX double,pCordY double,pEliminado boolean)
-BEGIN
-INSERT INTO Punto VALUES(pCordx,pCordy,0);
-END//
-DELIMITER;
 
 DELIMITER //
 CREATE PROCEDURE ModificarPunto(pCordX double,pCordY double,pIdPunto int) 
@@ -846,16 +838,16 @@ END//
 -- PROCEDIMIENTOS ALMACENADOS AREAS
 
 DELIMITER //
-CREATE PROCEDURE AltaArea (pNombre varchar(30),pIdPunto int,pIdMapa int)
+CREATE PROCEDURE AltaArea (pNombre varchar(30),pIdMapa int)
 BEGIN
-INSERT INTO Area (IdArea,NombreIdPunto,IdMapa) VALUES(0,pNombre,pIdPunto,pIdMapa);
-UPDATE Area SET Eliminado=0;
+INSERT INTO Area (IdArea,Nombre,IdMapa) VALUES(0,pNombre,pIdMapa);
+
 END
 
 DELIMITER //
-CREATE PROCEDURE ModificarArea(pIdArea int,pNombre varchar(30),pIdPunto int,pIdMapa int)
+CREATE PROCEDURE ModificarArea(pIdArea int,pNombre varchar(30),pIdMapa int)
 BEGIN
-UPDATE Area SET Nombre=pNombre,IdPunto=pIdPunto,IdMapa=pIdMapa WHERE IdArea=pIdArea;
+UPDATE Area SET Nombre=pNombre,IdMapa=pIdMapa WHERE IdArea=pIdArea;
 END//
 DELIMITER;
 
@@ -865,6 +857,20 @@ BEGIN
 UPDATE Area SET Eliminado=1 WHERE IdArea=pIdArea;
 END//
 DELIMITER;
+
+
+DELIMITER //
+CREATE PROCEDURE AltaPuntodeArea (pIdArea int,pIdPunto int,pCordX real,pCordY real,pIdMapa int)
+BEGIN
+DECLARE EXIT HANDLER FOR SQLEXCEPTION ROLLBACK;
+START TRANSACTION;
+INSERT INTO Punto (IdPunto,CordX,CordY) VALUES(0,pCordX,pCordY);
+INSERT INTO Area (IdArea,IdPunto,IdMapa) VALUES(0,pIdPunto,pIdMapa);
+commit;
+END
+//
+DELIMITER;
+
 
 DELIMITER //
 CREATE PROCEDURE BuscarArea(pIdArea int)
